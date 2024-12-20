@@ -33,14 +33,16 @@ CREATE TABLE comments(
     comment_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (comment_id),
     FOREIGN KEY (article_id) REFERENCES articles(article_id),
-    FOREIGN KEY (user_id) REFERENCES Utilisateurs(user_id)
+    FOREIGN KEY (user_id) REFERENCES auteur(user_id)
 );
 
 
 RENAME TABLE Utilisateurs TO Auteur;
 
-ALTER TABLE auteur
-MODIFY password VARCHAR(100);
+ALTER TABLE articles
+MODIFY article_img VARCHAR(500);
 
 
 SELECT * FROM users WHERE email='example@example.com';
+-- @block
+DESCRIBE articles;

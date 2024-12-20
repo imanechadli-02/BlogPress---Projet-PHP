@@ -3,18 +3,7 @@ include 'config.php';
 
 session_start();
 
-// echo "<pre>";
-// print_r($_SESSION);
-// echo "</pre>";
-
-
 $user_id = $_SESSION['id'];
-
-// echo "Debugging: user_id is $user_id<br>";  // Check if user_id is correct
-$query = "SELECT * FROM auteur WHERE user_id = $user_id";
-// echo "Debugging: SQL Query: $query<br>";  // Check if query is correct
-$result = $conn->query($query);
-
 
 // Vérification de l'existence de l'utilisateur dans `auteur`
 $result = $conn->query("SELECT * FROM auteur WHERE user_id = $user_id");
@@ -28,19 +17,12 @@ if (isset($_POST['submit'])) {
     $title = mysqli_real_escape_string($conn, $_POST['title']);
     $category = mysqli_real_escape_string($conn, $_POST['category']);
     $content = mysqli_real_escape_string($conn, $_POST['content']);
+    $article_img = mysqli_real_escape_string($conn, $_POST['article_img']); // URL de l'image
 
-    // Gestion de l'upload de l'image
-    $target_dir = "uploads/";
-    if (!file_exists($target_dir)) {
-        mkdir($target_dir, 0777, true);
+    // Vérification basique de l'URL
+    if (!filter_var($article_img, FILTER_VALIDATE_URL)) {
+        die("Erreur : URL de l'image invalide.");
     }
-
-    $target_file = $target_dir . basename($_FILES["article_img"]["name"]);
-    if (!move_uploaded_file($_FILES["article_img"]["tmp_name"], $target_file)) {
-        die("Erreur : Impossible de téléverser l'image.");
-    }
-
-    $article_img = basename($_FILES["article_img"]["name"]);
 
     // Insertion dans la table `articles`
     $query = "
@@ -155,7 +137,7 @@ if (isset($_POST['submit'])) {
         <input type="text" name="title" placeholder="Titre" required>
         <input type="text" name="category" placeholder="Catégorie" required>
         <textarea name="content" placeholder="Contenu" required></textarea>
-        <input type="file" name="article_img" accept="image/*" required>
+        <input type="text" name="article_img" placeholder="URL de l'image" required>
         <button type="submit" name="submit">Ajouter l'Article</button>
     </form>
 </body>
