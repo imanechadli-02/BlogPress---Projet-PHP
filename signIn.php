@@ -1,36 +1,30 @@
 <?php
-session_start();
 include("config.php");
+session_start();
 
 if (isset($_POST['submit'])) {
-    // Securely get email and password from the POST request
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
 
-    // Query the auteur table
-    $result = mysqli_query($conn, "SELECT * FROM auteur WHERE email='$email'") or die("Query Error");
+    $result = mysqli_query($conn, "SELECT * FROM auteur WHERE email='$email'");
 
-    // Fetch the user data
     $row = mysqli_fetch_assoc($result);
 
-    // Check if user exists and verify password
     if ($row && password_verify($password, $row['password'])) {
-        // Set session variables
-        $_SESSION['valid'] = $row['email'];
+        $_SESSION['email'] = $row['email'];
         $_SESSION['user_fname'] = $row['user_fname'];
         $_SESSION['user_lname'] = $row['user_lname'];
         $_SESSION['id'] = $row['user_id'];
 
-        // Redirect to home page
         header("Location: adminDashbord.php");
         exit;
     } else {
-        // If login fails, show an error message
         echo "<div class='message'>
                 <p>Wrong Email or Password</p>
               </div> <br>";
         echo "<a href='index.php'><button class='btn'>Go Back</button></a>";
     }
+    
 }
 ?>
 

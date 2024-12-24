@@ -2,11 +2,10 @@
 include 'config.php';
 session_start();
 
-// Check if article_id is provided in the URL
 if (isset($_GET['article_id'])) {
     $article_id = $_GET['article_id'];
-
-    // Fetch the article data from the database
+    
+    
     $query = "SELECT * FROM articles WHERE article_id = $article_id";
     $result = $conn->query($query);
 
@@ -19,27 +18,16 @@ if (isset($_GET['article_id'])) {
     die("No article ID provided.");
 }
 
-// Handle the form submission to update the article
 if (isset($_POST['submit'])) {
     $title = mysqli_real_escape_string($conn, $_POST['title']);
     $category = mysqli_real_escape_string($conn, $_POST['category']);
     $content = mysqli_real_escape_string($conn, $_POST['content']);
 
-    // Check if a new image is uploaded
-    $article_img = $article['article_img'];  // Default to the current image if no new image is uploaded
+   
+    // $article_img = $article['article_img'];  
 
-    if (!empty($_FILES["article_img"]["name"])) {
-        // If a new image is uploaded, handle the file upload
-        $target_dir = "uploads/";
-        $target_file = $target_dir . basename($_FILES["article_img"]["name"]);
-        if (move_uploaded_file($_FILES["article_img"]["tmp_name"], $target_file)) {
-            $article_img = basename($_FILES["article_img"]["name"]);
-        } else {
-            die("Error uploading the image.");
-        }
-    }
+   
 
-    // Update the article in the database
     $update_query = "
         UPDATE articles 
         SET article_titre = '$title', article_categorie = '$category', article_content = '$content', article_img = '$article_img'

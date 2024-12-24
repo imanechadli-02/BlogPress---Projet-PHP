@@ -1,5 +1,7 @@
 CREATE DATABASE BlogPress;
 
+CREATE DATABASE add;
+
 use BlogPress;
 CREATE Table auteur (
     user_id INT(11) NOT NULL AUTO_INCREMENT,
@@ -32,7 +34,7 @@ CREATE TABLE comments (
     content TEXT,
     comment_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (comment_id),
-    FOREIGN KEY (article_id) REFERENCES articles(article_id)
+    FOREIGN KEY (article_id) REFERENCES articles(article_id) on delete CASCADE
 );
 
 
@@ -53,3 +55,13 @@ ALTER TABLE comments RENAME COLUMN user_id TO username;
 DROP TABLE comments;
 
 ALTER TABLE comments MODIFY username VARCHAR(255);
+
+SELECT * FROM articles ;
+
+UPDATE articles
+SET article_views = 0
+WHERE article_views IS NULL;
+
+
+ALTER TABLE articles
+MODIFY article_views  INT(11) DEFAULT 0;

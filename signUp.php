@@ -7,24 +7,15 @@ if (isset($_POST['submit'])) {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // Verifying the unique email
     $verify_query = mysqli_query($conn, "SELECT email FROM auteur WHERE email='$email'");
 
-    if ($verify_query === false) {
-        // If the query fails, output the error
-        echo "<div class='message'>
-                <p>Error in query: " . mysqli_error($conn) . "</p>
-              </div><br>";
-        exit; // Stop further execution
-    }
 
     if (mysqli_num_rows($verify_query) != 0) {
         echo "<div class='message'>
                     <p>This email is already used. Please try another one!</p>
                   </div><br>";
-        echo "<a href='javascript:self.history.back()'><button class='btn'>Go Back</button></a>";
     } else {
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT); // Secure password hashing
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT); 
         $insert_query = "INSERT INTO auteur(user_fname, user_lname, email, password)
                              VALUES ('$fname', '$lname', '$email', '$hashed_password')";
 

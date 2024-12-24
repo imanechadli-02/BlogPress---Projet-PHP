@@ -2,20 +2,12 @@
 session_start();
 include("config.php");
 
-// Check if the user is logged in
-// if (!isset($_SESSION['user_id'])) {
-//     // Redirect to login page if not logged in
-//     header('Location: signIn.php');
-//     exit();
-// }
-
-// Get the logged-in author ID
+if (!isset($_SESSION['id'])) {
+    die("Error: User is not logged in.");
+}
 
 $user_id = $_SESSION['id'];
-echo $_SESSION['id'];  // Check the session ID value after setting
 
-
-// Fetch article statistics
 $query = "
     SELECT 
         COUNT(*) AS total_articles,
@@ -24,22 +16,41 @@ $query = "
     FROM articles
     WHERE user_id = $user_id";
 $result = mysqli_query($conn, $query);
+
+if (!$result) {
+    die("Query failed: " . mysqli_error($conn));
+}
+
 $stats = mysqli_fetch_assoc($result);
 
-// Fetch view trends for Chart.js
 $chart_query = "
-    SELECT DATE(article_at) AS date, SUM(article_views) AS views
-    FROM articles
-    WHERE user_id = $user_id
-    GROUP BY DATE(article_at)";
+    SELECT 
+        a.article_id, 
+        a.article_titre, 
+        a.article_views AS article_views, 
+        a.article_likes AS article_likes, 
+        COUNT(c.comment_id) AS total_comments
+    FROM articles a
+    JOIN comments c ON a.article_id = c.article_id
+    WHERE a.user_id = $user_id
+    GROUP BY a.article_id, a.article_titre, a.article_views, a.article_likes";
 $chart_result = mysqli_query($conn, $chart_query);
+
+if (!$chart_result) {
+    die("Query failed: " . mysqli_error($conn));
+}
 
 $chart_data = [];
 while ($row = mysqli_fetch_assoc($chart_result)) {
     $chart_data[] = $row;
 }
-?>
 
+if (isset($_POST['logout'])) {
+    session_destroy();
+    header("Location: index.php"); 
+    exit();
+}
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -48,15 +59,70 @@ while ($row = mysqli_fetch_assoc($chart_result)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <!-- <link rel="stylesheet" href="style.css"> -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* General Styles */
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f9;
             color: #333;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-bottom: 2px solid #eaeaea;
+        }
+
+        header .flex {
+            display: flex;
+            align-items: center;
+        }
+
+        header a {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4a90e2;
+            text-decoration: none;
+        }
+
+        /* Styling the Logout Button */
+        button[type="submit"] {
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            background-color: #e74c3c;
+            /* Red background */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button[type="submit"]:hover {
+            background-color: #c0392b;
+            /* Darker red on hover */
+            transform: translateY(-2px);
+            /* Slight lift effect */
+        }
+
+        button[type="submit"]:active {
+            background-color: #a93226;
+            /* Even darker red on click */
+            transform: translateY(0);
+            /* Normal position when clicked */
+        }
+
+        button[type="submit"]:focus {
+            outline: none;
+            border: 2px solid #d35400;
+            /* Orange border on focus */
         }
 
         .dashboard {
@@ -75,7 +141,6 @@ while ($row = mysqli_fetch_assoc($chart_result)) {
             margin-bottom: 20px;
         }
 
-        /* Statistics Section */
         .stats {
             display: flex;
             justify-content: space-around;
@@ -96,7 +161,6 @@ while ($row = mysqli_fetch_assoc($chart_result)) {
             font-weight: bold;
         }
 
-        /* Chart Section */
         .chart-container {
             margin: 30px auto;
             padding: 20px;
@@ -107,7 +171,6 @@ while ($row = mysqli_fetch_assoc($chart_result)) {
             max-width: 800px;
         }
 
-        /* Link Style */
         a {
             display: inline-block;
             margin-top: 20px;
@@ -124,7 +187,6 @@ while ($row = mysqli_fetch_assoc($chart_result)) {
             background: #357ab8;
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
             .stats {
                 flex-direction: column;
@@ -139,6 +201,15 @@ while ($row = mysqli_fetch_assoc($chart_result)) {
 </head>
 
 <body>
+    <header class="flex justify-between items-center p-4 bg-white shadow-md">
+        
+        <div>
+            <form method="POST" action="">
+                <button type="submit" name="logout" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Logout</button>
+            </form>
+        </div>
+    </header>
+
     <div class="dashboard">
         <h1>Welcome to Your Dashboard</h1>
         <div class="stats">
@@ -147,37 +218,62 @@ while ($row = mysqli_fetch_assoc($chart_result)) {
             <div>Total Likes: <?= $stats['total_likes'] ?></div>
         </div>
 
-
         <div class="chart-container">
             <canvas id="viewChart"></canvas>
         </div>
 
         <a href="manageArticles.php">Manage Articles</a>
         <a href="add_articles.php">Add Article</a>
-        
     </div>
 
-    <!-- <script src="js/chart.js"></script>
     <script>
-        const chartData =
-          <?= json_encode($chart_data) ?>; -->
-        <!--const labels = chartData.map(item => item.date);
-        const data = chartData.map(item => item.views);
+        const chartData = <?= json_encode($chart_data) ?>;
+        const labels = chartData.map(item => item.article_titre); 
+        const views = chartData.map(item => item.article_views); 
+        const likes = chartData.map(item => item.article_likes); 
+        const comments = chartData.map(item => item.total_comments); 
 
         const ctx = document.getElementById('viewChart').getContext('2d');
         new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Views Over Time',
-                    data: data,
-                    borderColor: 'blue',
-                    fill: false
-                }]
+                        label: 'Views',
+                        data: views,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                    },
+                    {
+                        label: 'Likes',
+                        data: likes,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                    },
+                    {
+                        label: 'Comments',
+                        data: comments,
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                    },
+                    y: {
+                        beginAtZero: true,
+                    },
+                },
             },
         });
-    </script> -->
+    </script>
 </body>
 
 </html>

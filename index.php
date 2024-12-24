@@ -1,17 +1,13 @@
 <?php
-include "config.php"; // Ensure this file connects to your database
+include "config.php";
 
-// Fetch articles from the database
-$query = "SELECT * FROM articles ORDER BY article_at DESC"; // Modified to match your table structure
-        // echo "Debugging: article_views is $article_views<br>";
+$query = "SELECT * FROM articles
+          JOIN auteur 
+          ON articles.user_id = auteur.user_id  
+          ORDER BY article_at DESC";
 
-// Check for errors in the query
-$result = $conn->query($query);
+$result = mysqli_query($conn, $query);
 
-if ($result === false) {
-  // Query failed, output error message
-  die("Error in query: " . $conn->error);
-}
 ?>
 
 <!DOCTYPE html>
@@ -33,8 +29,11 @@ if ($result === false) {
       <a href="javascript:void(0)" class="hidden max-sm:block"><img src="https://readymadeui.com/readymadeui-short.svg" alt="logo" class='w-9' />
       </a>
 
-      <!-- Your existing menu and header structure remains unchanged -->
-
+      <!-- Add Sign In and Sign Up buttons -->
+      <div class="flex gap-4 items-center">
+        <a href="signin.php" class="px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-all duration-300">Sign In</a>
+        <a href="signup.php" class="px-4 py-2 text-white bg-green-500 rounded-md hover:bg-green-600 transition-all duration-300">Sign Up</a>
+      </div>
     </div>
   </header>
 
@@ -51,9 +50,9 @@ if ($result === false) {
             <div class="overflow-hidden p-4 rounded-md hover:bg-purple-100 transition-all duration-300">
               <img src="uploads/<?php echo $row['article_img']; ?>" alt="Blog Post" class="w-full h-64 object-cover rounded-md" />
               <div class="text-center">
-                <span class="text-sm block text-gray-800 mb-2 mt-4"><?php echo date('d M Y', strtotime($row['article_at'])); ?> | BY <?php echo $row['user_id']; ?></span>
+                <span class="text-sm block text-gray-800 mb-2 mt-4"><?php echo date('d M Y', strtotime($row['article_at'])); ?> | BY <?php echo $row['user_fname']; ?> <?php echo $row['user_lname']; ?> </span>
                 <h3 class="text-xl font-bold text-gray-800 mb-4"><?php echo $row['article_titre']; ?></h3>
-                <p class="text-gray-800 text-sm"><?php echo substr($row['article_content'], 0, 100); ?>...</p>
+                <p class="text-gray-800 text-sm"><?php echo substr($row['article_content'], 0, 20); ?>...</p>
                 <a href="single-post.php?id=<?php echo $row['article_id']; ?>" class="px-5 py-2.5 text-white text-sm tracking-wider border-none outline-none rounded-md bg-purple-500 hover:bg-purple-600 mt-6">Read more</a>
               </div>
             </div>

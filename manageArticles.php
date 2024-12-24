@@ -3,7 +3,7 @@ session_start();
 include("config.php");
 
 $author_id = $_SESSION['id'];
-// echo "Debugging: user_id is $author_id<br>";  // Check if user_id is correct
+// echo "Debugging: user_id is $author_id<br>"; 
 
 $query = "SELECT * FROM articles WHERE user_id = $author_id";
 $result = mysqli_query($conn, $query);
@@ -103,7 +103,7 @@ $result = mysqli_query($conn, $query);
             background-color: #c82333;
         }
 
-        
+
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -149,8 +149,7 @@ $result = mysqli_query($conn, $query);
 
                     <a href="deleteArticle.php?article_id=<?= $article['article_id'] ?>"
                         onclick="return confirm('Are you sure you want to delete this article?')">Delete</a>
-                    <!-- <a href="deleteArticle.php?id=<?= $article['article_id'] ?>" onclick="return confirm('Are you sure?')">Delete</a>
-                <a href="deleteArticle.php?article_id=<?= $article['article_id'] ?>">Delete</a> -->
+                    <a href="manageComments.php?article_id=<?= $article['article_id'] ?>">Comments</a>
 
                 </td>
             </tr>

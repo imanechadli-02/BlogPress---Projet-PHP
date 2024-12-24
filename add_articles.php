@@ -5,26 +5,21 @@ session_start();
 
 $user_id = $_SESSION['id'];
 
-// Vérification de l'existence de l'utilisateur dans `auteur`
 $result = $conn->query("SELECT * FROM auteur WHERE user_id = $user_id");
 if (!$result || $result->num_rows == 0) {
     die("Erreur : Utilisateur introuvable dans la table 'auteur'.");
 }
 
-// Gestion de l'envoi du formulaire
 if (isset($_POST['submit'])) {
-    // Protection contre les injections SQL
     $title = mysqli_real_escape_string($conn, $_POST['title']);
     $category = mysqli_real_escape_string($conn, $_POST['category']);
     $content = mysqli_real_escape_string($conn, $_POST['content']);
-    $article_img = mysqli_real_escape_string($conn, $_POST['article_img']); // URL de l'image
+    $article_img = mysqli_real_escape_string($conn, $_POST['article_img']); 
 
-    // Vérification basique de l'URL
     if (!filter_var($article_img, FILTER_VALIDATE_URL)) {
         die("Erreur : URL de l'image invalide.");
     }
 
-    // Insertion dans la table `articles`
     $query = "
         INSERT INTO articles (user_id, article_img, article_titre, article_categorie, article_content)
         VALUES ($user_id, '$article_img', '$title', '$category', '$content')";
@@ -45,7 +40,6 @@ if (isset($_POST['submit'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ajouter un Article</title>
     <style>
-        /* Styles généraux */
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
@@ -58,7 +52,6 @@ if (isset($_POST['submit'])) {
             height: 100vh;
         }
 
-        /* Conteneur du formulaire */
         form {
             background: #fff;
             padding: 30px;

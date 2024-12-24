@@ -2,73 +2,61 @@
 include "config.php";
 session_start();
 
-// Check if article ID is provided
 if (isset($_GET['id'])) {
     $article_id = (int) $_GET['id'];
 
-    // Increment the article views
     $update_query = "UPDATE articles SET article_views = article_views + 1 WHERE article_id = $article_id";
     if (!$conn->query($update_query)) {
-        die("Error updating views: " . $conn->error); // Error handling for update query
+        die("Error updating views: " . $conn->error); 
     }
 
-    // Fetch the article details
     $query = "SELECT * FROM articles WHERE article_id = $article_id";
     $result = $conn->query($query);
 
     if ($result && $result->num_rows > 0) {
         $article = $result->fetch_assoc();
-        $article_views = $article['article_views']; // Get the updated views
-        $article_likes = $article['article_likes']; // Get the current like count
+        $article_views = $article['article_views']; 
+        $article_likes = $article['article_likes']; 
     } else {
         die("Article not found or invalid article_id.");
     }
 
-    // Handle Like
     if (isset($_POST['like'])) {
-        // Update the article_likes column in the articles table
-        $article_likes += 1; // Increment the like count
+        $article_likes += 1; 
         $like_query = "UPDATE articles SET article_likes = $article_likes WHERE article_id = $article_id";
         if (!$conn->query($like_query)) {
-            die("Error updating likes: " . $conn->error); // Error handling for like update query
+            die("Error updating likes: " . $conn->error); 
         }
     }
 
-    // Fetch the comments for this article
     $comment_query = "SELECT * FROM comments WHERE article_id = $article_id ORDER BY comment_at DESC";
     $comments_result = $conn->query($comment_query);
     if (!$comments_result) {
-        die("Error fetching comments: " . $conn->error); // Error handling for comment query
+        die("Error fetching comments: " . $conn->error); 
     }
 } else {
     die("No article ID provided.");
 }
 
-// Handle comment submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['content'])) {
-    // Use session username if available, otherwise fallback to form input
     $username = isset($_SESSION['username']) ? $_SESSION['username'] : $_POST['username'];
     $content = $_POST['content'];
 
-    // Prepare the SQL query for inserting comment
     $stmt = $conn->prepare("INSERT INTO comments (article_id, username, content) VALUES (?, ?, ?)");
     if (!$stmt) {
-        die("Error preparing query: " . $conn->error); // Error handling for prepare
+        die("Error preparing query: " . $conn->error); 
     }
 
-    // Bind parameters to the prepared statement
     if (!$stmt->bind_param("iss", $article_id, $username, $content)) {
-        die("Error binding parameters: " . $stmt->error); // Error handling for bind_param
+        die("Error binding parameters: " . $stmt->error); 
     }
 
-    // Execute the statement
     if (!$stmt->execute()) {
-        die("Error executing statement: " . $stmt->error); // Error handling for execute
+        die("Error executing statement: " . $stmt->error); 
     }
 
     $stmt->close();
 
-    // Refresh the page to display the new comment
     header("Location: single-post.php?id=$article_id");
     exit();
 }
@@ -94,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['content'])) {
         <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
             <img src="uploads/<?php echo htmlspecialchars($article['article_img']); ?>" alt="Article Image" class="w-full h-64 object-cover">
             <div class="p-6">
-                <p class="text-sm text-gray-600 mb-4">Published on: <?php echo date("d M Y", strtotime($article['article_at'])); ?> | Views: <?php echo $article['article_views']; ?></p>
+                <p class="text-sm text-gray-600 mb-4">Published on: <?php echo date("d M Y", strtotime($article['article_at'])); ?> | Views: <?php echo $article_views; ?></p>
                 <div class="text-gray-800 text-lg">
                     <?php echo nl2br(htmlspecialchars($article['article_content'])); ?>
                 </div>
